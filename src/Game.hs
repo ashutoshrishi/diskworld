@@ -1,17 +1,17 @@
 module Game where
 
-import           Control.Monad   (unless)
+import           Control.Monad (unless)
 import           Foreign.C.Types
 import           Linear
 import           Paths_diskworld (getDataFileName)
-import           Prelude         hiding (init)
-import           SDL             (($=))
+import           Prelude hiding (init)
+import           SDL (($=))
 import qualified SDL
 
+import           Data.Angle
 import           Graphics
 import           Types
 import           World
-
 
 -- | Make a default player with some setup
 makePlayer :: V2 Float    -- ^ Player position
@@ -40,7 +40,7 @@ startWorld :: SDL.Renderer -> V2 Float -> Color -> IO World
 startWorld renderer pos color = do
   sprite <- getDataFileName (playerSpriteFile color) >>= loadTexture renderer
   let player = makePlayer pos defaultSpeed sprite color
-  let world = World player Rotate
+  let world = World player Rotate defaultGrid
   return world
 
 
@@ -50,6 +50,9 @@ startWorld renderer pos color = do
 
 gameLoop :: SDL.Renderer -> World -> IO ()
 gameLoop renderer world = do
+  let Degrees angle = rotation (player world)
+  putStrLn $ "Angle: " ++ (show angle)
+  world <- runCollisionManager world
   drawWorld renderer world
   events <- SDL.pollEvents
 
@@ -120,9 +123,3 @@ heldEventOf code event =
     isHeld ke = SDL.keyboardEventRepeat ke 
     isCode ke c = SDL.keysymKeycode (SDL.keyboardEventKeysym ke) == c
 
-  
-  
-  
-  
-  
-  

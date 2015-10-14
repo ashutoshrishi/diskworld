@@ -11,7 +11,8 @@ data MoveState = Rotate | Move
 
 data World = World
              { player :: Player
-             , currentState :: MoveState }
+             , currentState :: MoveState
+             , grid :: Grid }
 
 type Speed = (Float, Float)
 
@@ -37,3 +38,19 @@ data Color = Red | Blue
            deriving (Show, Ord, Eq)
 
 
+-- | Bounding collision box 
+data Box = NoBox | Box
+                   { topEdge    :: Float
+                   , rightEdge  :: Float
+                   , bottomEdge :: Float
+                   , leftEdge   :: Float
+                   } deriving (Show, Ord, Eq)
+
+data Wall =  TopWall 
+          | RightWall
+          | BottomWall 
+          | LeftWall
+          deriving (Show, Ord, Eq)
+
+data Grid = Grid [Wall]
+            deriving (Show, Ord, Eq)
