@@ -32,8 +32,8 @@ defaultSpeed :: (Float, Float)
 defaultSpeed = let sc = 0.01
                    -- sx = sc * (fromIntegral screenWidth)
                    -- sy = sc * (fromIntegral screenHeight)
-                   sx = 0.5
-                   sy = 0.5
+                   sx = 1
+                   sy = 1
                in (sx, sy)
 
 startWorld :: SDL.Renderer -> V2 Float -> Color -> IO World
@@ -51,7 +51,9 @@ startWorld renderer pos color = do
 gameLoop :: SDL.Renderer -> World -> IO ()
 gameLoop renderer world = do
   let Degrees angle = rotation (player world)
-  putStrLn $ "Angle: " ++ (show angle)
+  -- putStrLn $ "Angle: " ++ (show angle)
+  let p = player world
+  -- putStrLn $ "Vector: " ++ (show $ makeVelocityVector (speed p) (rotation p))
   world <- runCollisionManager world
   drawWorld renderer world
   events <- SDL.pollEvents
@@ -73,9 +75,6 @@ runWorld world = case currentState world of
                        Rotate -> withPlayer world rotatePlayer
                        Move -> withPlayer world movePlayer
 
-withPlayer :: World -> (Player -> Player) -> World
-withPlayer w f = w { player = player' }
-    where player' = f (player w)
 
 ----------------------------------------------------------------------------
 -- Event handling                                                         --

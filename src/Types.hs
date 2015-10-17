@@ -29,7 +29,7 @@ defaultPlayer :: Player
 defaultPlayer = Player {
   position = error $ "Position has to be specified",
   speed = (1.0, 1.0),
-  rotation = Degrees 180,
+  rotation = Degrees 0,
   texture = error $ "No texture specified.",
   diskColor = error $ "No color specified"
 }
@@ -54,3 +54,5 @@ data Wall =  TopWall
 
 data Grid = Grid [Wall]
             deriving (Show, Ord, Eq)
+
+
