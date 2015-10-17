@@ -63,7 +63,7 @@ renderTexture renderer tex (At p r) = do
   ti <- SDL.queryTexture tex
   let (w, h) = (SDL.textureWidth ti, SDL.textureHeight ti)
       extent = (V2 w h)
-      flip = V2 False False
+      flip = V2 False False      
   SDL.copyEx renderer tex Nothing (Just $ SDL.Rectangle p extent) r Nothing flip
 
 ----------------------------------------------------------------------------
