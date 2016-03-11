@@ -24,9 +24,6 @@ import           GHC.Float
 import           Paths_diskworld (getDataFileName)
 import           Types
 
-screenWidth, screenHeight :: CInt
-(screenWidth, screenHeight) = (640, 480)
-
 
 -- | Derive the default player's starting position according to screen
 -- size.

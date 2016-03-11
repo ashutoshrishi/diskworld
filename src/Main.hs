@@ -28,7 +28,7 @@ main :: IO ()
 main = do
   SDL.initialize [ SDL.InitVideo ]
   -- init window and renderer
-  window <- SDL.createWindow "Lesson 4a" gameWindowConfig
+  window <- SDL.createWindow "Disk World" gameWindowConfig
   renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
 
   world <- startWorld renderer (V2 100 100) Blue

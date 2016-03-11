@@ -107,40 +107,6 @@ bounded d@(Degrees a)
 -- Collision Manager                                                      --
 ----------------------------------------------------------------------------
 
--- | Get the bounding box of the player, which is collidable.
-playerBox :: Player -> Box
-playerBox player = Box x y 32 32
-    where V2 x y = position player
-
--- | Floating point conversion of the height and width of the game
--- screen.
-width, height :: Float                   
-(width, height) = (fromIntegral screenWidth, fromIntegral screenHeight)
-
--- | Get the bounding collidable box of a wall.                  
-wallBox :: Wall -> Box
-wallBox TopWall = Box 0 0 width 0
-wallBox RightWall = Box width 0 0 height
-wallBox BottomWall = Box 0 height width 0
-wallBox LeftWall = Box 0 0 0 height
-
--- | Get the normal vector angle of the given Wall
--- (with respect to the disk frame of reference)
-normal :: Wall -> Degrees Float
-normal TopWall = Degrees 90
-normal RightWall = Degrees 180
-normal BottomWall = Degrees 270
-normal LeftWall = Degrees 360
-                   
--- | Test for collision between two Boxes.
-boxCollision :: Box -> Box -> Bool
-boxCollision (Box x1 y1 w1 h1) (Box x2 y2 w2 h2) =
-    x1 < (x2 + w2)
-           && (x1 + w1) > x2
-           && (y1 < (y2 + h2))
-           && ((y1 + h1) > y2)
-    
-
 -- | The collision manager run, checks if the current position of the
 -- player disc collides with any fixed collidable boxes withing the
 -- game, and simulates 2d physics on collision.
@@ -160,10 +126,6 @@ checkWalls (w:ws) p =
   then checkWalls ws (bounce w p)
   else checkWalls ws p
 
--- | Check for collision between a wall and player.
-collides :: Wall -> Player -> Bool
-collides w p = boxCollision (playerBox p) (wallBox w)
-
 
 -- | Simulate a player bouncing off the given wall, while
 -- considering the approach angle
@@ -174,4 +136,10 @@ bounce wall p = p { rotation = newAngle }
     newAngle = flipAngle oldAngle (normal wall)
 
                           
-                       
+-- | Get the normal vector angle of the given Wall
+-- (with respect to the disk frame of reference)
+normal :: Wall -> Degrees Float
+normal TopWall = Degrees 90
+normal RightWall = Degrees 180
+normal BottomWall = Degrees 270
+normal LeftWall = Degrees 360
