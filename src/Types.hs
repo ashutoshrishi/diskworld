@@ -1,8 +1,18 @@
-module Types where
+module Types (
+    -- * Game types
+    MoveState(..), World(..), Speed, Player(..), Color(..), Wall(..),
+    Grid(..), Collidable, Box(..),
+    -- * Maker helpers
+    defaultPlayer, defaultGrid,
+    -- * Some defaults
+    -- XXX Remove these
+    screenWidth, screenHeight,
+    -- * Game types interaction functions
+    collides
+    ) where
 
 import           Foreign.C.Types
 import           Linear
-import           Prelude         hiding (init)
 import qualified SDL
 import Data.Angle
 
@@ -49,6 +59,11 @@ data Wall =  TopWall
 
 data Grid = Grid [Wall]
             deriving (Show, Ord, Eq)
+
+-- | Define the default map boundaries for the game
+defaultGrid :: Grid
+defaultGrid = Grid [TopWall, RightWall, BottomWall, LeftWall]
+
 
 
 -- | Type class encompassing physical collidable objects, whose

@@ -14,7 +14,6 @@ import           Linear
 import           Linear (V4 (..))
 import           Linear.Affine (Point (P))
 
-import           Prelude hiding (init)
 import           SDL (($=))
 import qualified SDL
 
@@ -62,6 +61,9 @@ renderTexture renderer tex (At p r) = do
       extent = (V2 w h)
       flip = V2 False False      
   SDL.copyEx renderer tex Nothing (Just $ SDL.Rectangle p extent) r Nothing flip
+
+
+
 
 ----------------------------------------------------------------------------
 -- Drawing                                                                --

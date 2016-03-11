@@ -1,17 +1,38 @@
-module Game where
+module Game ( startWorld, gameLoop ) where
 
-import           Control.Monad (unless)
+
+import           Control.Monad   (unless)
 import           Foreign.C.Types
 import           Linear
 import           Paths_diskworld (getDataFileName)
-import           Prelude hiding (init)
-import           SDL (($=))
 import qualified SDL
 
 import           Data.Angle
+import           Data.List       as List
+import           Data.Map        as Map
 import           Graphics
 import           Types
 import           World
+
+-------------------------------------------------------------------------------
+-- Game Setup                                                                --
+-------------------------------------------------------------------------------
+
+-- | Initialize the World with the player, walls and initial states of all
+-- entities in the world.
+startWorld :: SDL.Renderer -> V2 Float -> Color -> IO World
+startWorld renderer pos color = do
+  sprite <- getDataFileName (playerSpriteFile color) >>= loadTexture renderer
+  let player = makePlayer pos defaultSpeed sprite color
+  let world = World player Rotate defaultGrid
+  return world
+
+-- | Decide the player sprite given it's color
+playerSpriteFile :: Color -> FilePath
+playerSpriteFile color = case (Map.lookup color colorMap) of
+                           Just f -> f
+                           Nothing -> error "Color not found."
+
 
 -- | Make a default player with some setup
 makePlayer :: V2 Float    -- ^ Player position
@@ -36,16 +57,9 @@ defaultSpeed = let sc = 0.01
                    sy = 1
                in (sx, sy)
 
-startWorld :: SDL.Renderer -> V2 Float -> Color -> IO World
-startWorld renderer pos color = do
-  sprite <- getDataFileName (playerSpriteFile color) >>= loadTexture renderer
-  let player = makePlayer pos defaultSpeed sprite color
-  let world = World player Rotate defaultGrid
-  return world
-
 
 ----------------------------------------------------------------------------
--- Logic                                                                  --
+-- Game Logic                                                             --
 ----------------------------------------------------------------------------
 
 gameLoop :: SDL.Renderer -> World -> IO ()
@@ -60,11 +74,11 @@ gameLoop renderer world = do
 
   let qPressed = keycodeOccurs SDL.KeycodeQ events
   -- Let the events decide the resulting state of the world
-  let world' = eventHandler world events   
+  let world' = eventHandler world events
   unless qPressed (gameLoop renderer (runWorld world'))
 
 
-moveState :: World -> World            
+moveState :: World -> World
 moveState world = world { currentState = Move }
 
 rotateState :: World -> World
@@ -86,10 +100,11 @@ eventHandler world (e:es)
     | pressEventOf SDL.KeycodeA e = moveState world
     | releaseEventOf SDL.KeycodeA e = rotateState world
     | otherwise = eventHandler world es
-               
+
 
 keycodeOccurs :: SDL.Keycode -> [SDL.Event] -> Bool
-keycodeOccurs code events = not (null $ filter (pressEventOf code) events)
+keycodeOccurs code events = not (List.null $
+                                 List.filter (pressEventOf code) events)
 
 pressEventOf :: SDL.Keycode -> SDL.Event -> Bool
 pressEventOf code event =
@@ -109,9 +124,9 @@ releaseEventOf code event =
   where
     isReleased ke = SDL.keyboardEventKeyMotion ke == SDL.Released
     isCode ke c = SDL.keysymKeycode (SDL.keyboardEventKeysym ke) == c
-                  
 
-                  
+
+
 heldEventOf :: SDL.Keycode -> SDL.Event -> Bool
 heldEventOf code event =
   case (SDL.eventPayload event) of
@@ -119,6 +134,6 @@ heldEventOf code event =
     _ -> False
   where
     isPressed ke = SDL.keyboardEventKeyMotion ke == SDL.Pressed
-    isHeld ke = SDL.keyboardEventRepeat ke 
+    isHeld ke = SDL.keyboardEventRepeat ke
     isCode ke c = SDL.keysymKeycode (SDL.keyboardEventKeysym ke) == c
 

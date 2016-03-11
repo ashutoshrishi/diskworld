@@ -1,27 +1,16 @@
-module World where
+module World (
+    withPlayer, movePlayer, rotatePlayer, makeVelocityVector,
+    runCollisionManager
+             ) where
 
 import           Prelude         hiding (init)
-import           SDL             (($=))
-import qualified SDL
 
-import qualified Data.Map        as Map
+import           Data.Angle
+import           Data.Map        as Map
 import           Foreign.C.Types
 import           Graphics
+import           Linear
 import           Types
-import Linear
-import Data.Angle        
-
-
--- | Define the default map boundaries for the game
-defaultGrid :: Grid
-defaultGrid = Grid [TopWall, RightWall, BottomWall, LeftWall]
-
-
--- | Decide the player sprite given it's color               
-playerSpriteFile :: Color -> FilePath
-playerSpriteFile color = case (Map.lookup color colorMap) of
-                           Just f -> f
-                           Nothing -> error "Color not found."
 
 
 -- | Update the world's current player and place it back in the
@@ -36,10 +25,10 @@ withPlayer w f = w { player = player' }
 movePlayer :: Player -> Player
 movePlayer p =
   let oldp = position p
-      vel = makeVelocityVector (speed p) (rotation p)      
+      vel = makeVelocityVector (speed p) (rotation p)
   in p { position = oldp + vel }
 
-                  
+
 -- | Rotate the disk at its place gradually.
 rotatePlayer :: Player -> Player
 rotatePlayer p = let Degrees oldAngle = rotation p
@@ -62,7 +51,7 @@ makeVelocityVector (sx, sy) d =
 -- it collides at a point with the given normal.
 -- The incoming disk angle is complimented, it's angle with with
 -- the normal is calculated and that amount is added/subtracted
--- from the normal to get the outgoing angle. 
+-- from the normal to get the outgoing angle.
 flipAngle :: Degrees Float -- ^ rotation of disk
           -> Degrees Float -- ^ normal
           -> Degrees Float -- ^ rebound rotation
@@ -92,17 +81,17 @@ vectorAngle v n = degrees r
   where
     r = Radians $ acos $ (dotProd n v) / (magnitude v)
 
--- | Compliment of an angle.    
+-- | Compliment of an angle.
 compliment :: Degrees Float -> Degrees Float
 compliment (Degrees a) = bounded $ Degrees (a + 180)
 
 -- | Constrain the angle within the choosen convention of
--- clockwise rotaion from 0 degrees to 359 degrees. 
+-- clockwise rotaion from 0 degrees to 359 degrees.
 bounded :: Degrees Float -> Degrees Float
 bounded d@(Degrees a)
   | a < 0 = Degrees $ a + 360
   | otherwise = if a >= 360 then Degrees $ a - 360 else d
- 
+
 ----------------------------------------------------------------------------
 -- Collision Manager                                                      --
 ----------------------------------------------------------------------------
@@ -135,7 +124,7 @@ bounce wall p = p { rotation = newAngle }
     oldAngle = rotation p
     newAngle = flipAngle oldAngle (normal wall)
 
-                          
+
 -- | Get the normal vector angle of the given Wall
 -- (with respect to the disk frame of reference)
 normal :: Wall -> Degrees Float
