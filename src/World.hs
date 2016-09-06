@@ -24,15 +24,15 @@ withPlayer w f = w { player = player' }
 -- No rotation is to take place at this step.
 movePlayer :: Player -> Player
 movePlayer p =
-  let oldp = position p
-      vel = makeVelocityVector (speed p) (rotation p)
-  in p { position = oldp + vel }
+  let oldp = pPosition p
+      vel = makeVelocityVector (pSpeed p) (pRotation p)
+  in p { pPosition = oldp + vel }
 
 
 -- | Rotate the disk at its place gradually.
 rotatePlayer :: Player -> Player
-rotatePlayer p = let Degrees oldAngle = rotation p
-                 in p { rotation = Degrees (incAngle oldAngle) }
+rotatePlayer p = let Degrees oldAngle = pRotation p
+                 in p { pRotation = Degrees (incAngle oldAngle) }
 
 -- | Increment angle by a fixed graduating amount.
 incAngle :: Float -> Float
@@ -119,9 +119,9 @@ checkWalls (w:ws) p =
 -- | Simulate a player bouncing off the given wall, while
 -- considering the approach angle
 bounce :: Wall -> Player -> Player
-bounce wall p = p { rotation = newAngle }
+bounce wall p = p { pRotation = newAngle }
   where
-    oldAngle = rotation p
+    oldAngle = pRotation p
     newAngle = flipAngle oldAngle (normal wall)
 
 

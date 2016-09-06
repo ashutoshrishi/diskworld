@@ -1,7 +1,9 @@
-module Game ( startWorld, gameLoop ) where
+module Game ( setupWorld, gameLoop ) where
 
 
 import           Control.Monad   (unless)
+import Control.Monad.State.Lazy (modify, gets)
+import Control.Monad.IO.Class (liftIO)
 import           Foreign.C.Types
 import           Linear
 import           Paths_diskworld (getDataFileName)
@@ -12,7 +14,7 @@ import           Data.List       as List
 import           Data.Map        as Map
 import           Graphics
 import           Types
-import           World
+
 
 -------------------------------------------------------------------------------
 -- Game Setup                                                                --
@@ -20,33 +22,17 @@ import           World
 
 -- | Initialize the World with the player, walls and initial states of all
 -- entities in the world.
-startWorld :: SDL.Renderer -> V2 Float -> Color -> IO World
-startWorld renderer pos color = do
-  sprite <- getDataFileName (playerSpriteFile color) >>= loadTexture renderer
-  let player = makePlayer pos defaultSpeed sprite color
-  let world = World player Rotate defaultGrid
-  return world
-
--- | Decide the player sprite given it's color
-playerSpriteFile :: Color -> FilePath
-playerSpriteFile color = case (Map.lookup color colorMap) of
-                           Just f -> f
-                           Nothing -> error "Color not found."
+-- startWorld :: SDL.Renderer -> V2 Float -> DiskColor -> IO World
+-- startWorld renderer pos color = do
+--   sprite <- getDataFileName (playerSpriteFile color) >>= loadTexture renderer
+--   let player = makePlayer pos defaultSpeed sprite color
+--   let world = World player Rotate defaultGrid
+--   return world
 
 
--- | Make a default player with some setup
-makePlayer :: V2 Float    -- ^ Player position
-           -> Speed
-           -> SDL.Texture   -- ^ Player color for sprite selection
-           -> Color
-           -> Player  -- ^ created Player
-makePlayer pos sp tex c =
-  defaultPlayer
-  { position = pos
-  , speed = sp
-  , texture = tex
-  , diskColor = c
-  }
+setupWorld :: Game ()
+setupWorld = do
+    liftIO $ putStrLn "Done."
 
 
 defaultSpeed :: (Float, Float)
@@ -62,44 +48,51 @@ defaultSpeed = let sc = 0.01
 -- Game Logic                                                             --
 ----------------------------------------------------------------------------
 
-gameLoop :: SDL.Renderer -> World -> IO ()
-gameLoop renderer world = do
-  let Degrees angle = rotation (player world)
-  -- putStrLn $ "Angle: " ++ (show angle)
-  let p = player world
-  -- putStrLn $ "Vector: " ++ (show $ makeVelocityVector (speed p) (rotation p))
-  world <- runCollisionManager world
-  drawWorld renderer world
-  events <- SDL.pollEvents
+gameLoop :: Game ()
+gameLoop = do
+    drawWorld
+    events <- SDL.pollEvents
+    let qPressed = keycodeOccurs SDL.KeycodeQ events
+    unless qPressed gameLoop
 
-  let qPressed = keycodeOccurs SDL.KeycodeQ events
-  -- Let the events decide the resulting state of the world
-  let world' = eventHandler world events
-  unless qPressed (gameLoop renderer (runWorld world'))
+-- gameLoop :: SDL.Renderer -> World -> IO ()
+-- gameLoop renderer world = do
+--   let Degrees angle = pRotation (player world)
+--   -- putStrLn $ "Angle: " ++ (show angle)
+--   let p = player world
+--   -- putStrLn $ "Vector: " ++ (show $ makeVelocityVector (speed p) (rotation p))
+--   world <- runCollisionManager world
+--   drawWorld renderer world
+--   events <- SDL.pollEvents
 
-
-moveState :: World -> World
-moveState world = world { currentState = Move }
-
-rotateState :: World -> World
-rotateState world = world { currentState = Rotate }
-
-runWorld :: World -> World
-runWorld world = case currentState world of
-                       Rotate -> withPlayer world rotatePlayer
-                       Move -> withPlayer world movePlayer
+--   let qPressed = keycodeOccurs SDL.KeycodeQ events
+--   -- Let the events decide the resulting state of the world
+--   let world' = eventHandler world events
+--   unless qPressed (gameLoop renderer (runWorld world'))
 
 
-----------------------------------------------------------------------------
--- Event handling                                                         --
-----------------------------------------------------------------------------
+-- moveState :: World -> World
+-- moveState world = world { currentState = Move }
 
-eventHandler :: World -> [SDL.Event] -> World
-eventHandler world [] = world
-eventHandler world (e:es)
-    | pressEventOf SDL.KeycodeA e = moveState world
-    | releaseEventOf SDL.KeycodeA e = rotateState world
-    | otherwise = eventHandler world es
+-- rotateState :: World -> World
+-- rotateState world = world { currentState = Rotate }
+
+-- runWorld :: World -> World
+-- runWorld world = case currentState world of
+--                        Rotate -> withPlayer world rotatePlayer
+--                        Move -> withPlayer world movePlayer
+
+
+-- ----------------------------------------------------------------------------
+-- -- Event handling                                                         --
+-- ----------------------------------------------------------------------------
+
+-- eventHandler :: World -> [SDL.Event] -> World
+-- eventHandler world [] = world
+-- eventHandler world (e:es)
+--     | pressEventOf SDL.KeycodeA e = moveState world
+--     | releaseEventOf SDL.KeycodeA e = rotateState world
+--     | otherwise = eventHandler world es
 
 
 keycodeOccurs :: SDL.Keycode -> [SDL.Event] -> Bool

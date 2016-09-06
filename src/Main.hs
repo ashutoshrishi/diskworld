@@ -1,9 +1,3 @@
-{-# LANGUAGE CPP               #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE MultiWayIf        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-
 module Main where
 
 
@@ -21,20 +15,22 @@ import qualified SDL
 import           Game
 import           Graphics
 import           Paths_diskworld     (getDataFileName)
+import Control.Monad.State.Lazy (gets)
 import           Types
 
 
 main :: IO ()
 main = do
   SDL.initialize [ SDL.InitVideo ]
-  -- init window and renderer
-  window <- SDL.createWindow "Disk World" gameWindowConfig
-  renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
+  runGame defaultOptions mainGame
 
-  world <- startWorld renderer (V2 100 100) Blue
-  gameLoop renderer world
 
-  -- destroy
-  SDL.destroyRenderer renderer
-  SDL.destroyWindow window
-  SDL.quit
+mainGame :: Game ()
+mainGame = do
+    setupWorld
+    gameLoop
+    -- cleanup
+    renderer <- gets gameRenderer
+    window <- gets gameWindow
+    SDL.destroyRenderer renderer
+    SDL.destroyWindow window
